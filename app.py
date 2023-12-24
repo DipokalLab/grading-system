@@ -4,10 +4,12 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 from PyQt5.QtGui import QPixmap
+from PIL import Image
 
 
 
-MAX_CAPTURE = 2
+MAX_CAPTURE = 3
+PRESET_PAGE = 1
 
 class Window(QWidget):
 
@@ -24,7 +26,7 @@ class Window(QWidget):
         self.nowPointCursor = 0
 
         self.scroll = QScrollArea(self) 
-        self.scroll.setGeometry(0,0,500,1000)   
+        self.scroll.setGeometry(0,0,500,600)   
 
         self.label = QLabel(self)
         self.pixmap = QPixmap('./files/30725-01.jpg')
@@ -37,6 +39,7 @@ class Window(QWidget):
 
 
         self.scroll.setWidget(self.label) 
+
         self.show()
 
     def getPos(self , event):
@@ -48,6 +51,22 @@ class Window(QWidget):
         self.points[self.nowPointCursor][3].setText(str(y))
 
         self.nowPointCursor += 1
+
+        if (self.nowPointCursor >= MAX_CAPTURE * 2):
+            self.getCropImage('./files/30725-01.jpg')
+
+
+    def getCropImage(self, imageUrl):
+        for i in range(0, MAX_CAPTURE * 2, 2):
+            img = Image.open(imageUrl)
+            imgMinX = int(self.points[i][1].text())
+            imgMinY = int(self.points[i][3].text())
+            imgMaxX = int(self.points[i+1][1].text())
+            imgMaxY = int(self.points[i+1][3].text())
+
+            imgCropped = img.crop((imgMinX, imgMinY, imgMaxX, imgMaxY))
+            imgCropped.show()
+
 
 
 
