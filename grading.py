@@ -19,7 +19,8 @@ class GradingWindow(QWidget):
         self.move(300, 300)
         self.resize(1000, 600)
 
-        filelist = os.listdir('./result')
+        filelist = sorted(os.listdir('./result'))
+        print(filelist)
 
         self.tableWidget = QTableWidget()
         self.tableWidget.setRowCount(len(filelist))
@@ -28,8 +29,11 @@ class GradingWindow(QWidget):
         self.tableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
 
-        self.tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-
+        # self.tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        header = self.tableWidget.horizontalHeader()       
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
 
         for i in range(len(filelist)):
             label = QLabel(self)
@@ -40,6 +44,8 @@ class GradingWindow(QWidget):
             # self.tableWidget.setItem(i, 0, QTableWidgetItem("S"))
 
             self.tableWidget.setCellWidget(i, 0, label)
+            # self.tableWidget.setRowHeight(i, )
+            self.tableWidget.resizeRowToContents(i)
 
             # self.tableWidget.setImage(i, 1, "./result/" + filelist[i])
 
