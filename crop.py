@@ -5,11 +5,13 @@ from PyQt5.QtCore import *
 
 from PyQt5.QtGui import QPixmap
 from PIL import Image
+import os
 
 
 DEBUG_MODE = True
-MAX_CAPTURE = 3
+MAX_CAPTURE = 5
 PRESET_PAGE = 2
+PRESET_PATH = "./preset/"
 FILE_EXT = 'jpg'
 
 class CropWindow(QWidget):
@@ -24,6 +26,8 @@ class CropWindow(QWidget):
         self.resize(1000, 600)
 
         self.points = []
+        self.cropData = [[] for i in range(PRESET_PAGE)] 
+        self.isDisableCrop = False
         self.nowPointCursor = 0
         self.nowPageNumber = 1
 
@@ -31,18 +35,26 @@ class CropWindow(QWidget):
         self.scroll.setGeometry(0,0,500,600)   
 
         self.label = QLabel(self)
-        self.pixmap = QPixmap("./files/" + self.getNowFilename())
+        self.pixmap = QPixmap(PRESET_PATH + self.getNowFilename())
         self.label.setPixmap(self.pixmap)
         self.label.mousePressEvent = self.getMousePosition
 
         self.gradingButton = QPushButton(text="Grading", parent=self)
-        self.gradingButton.move(780, 540)
+        self.gradingButton.move(680, 540)
+        self.gradingButton.setEnabled(False)
+
+        self.cropAllButton = QPushButton(text="Crop All", parent=self)
+        self.cropAllButton.move(780, 540)
+        self.cropAllButton.setEnabled(False)
+        self.cropAllButton.clicked.connect(self.cropAllImage)
+
+        
 
 
         if (PRESET_PAGE > 1):
-            nextPageButton = QPushButton(text="Next Page", parent=self)
-            nextPageButton.move(880, 540)
-            nextPageButton.clicked.connect(self.setNextPage)
+            self.nextPageButton = QPushButton(text="Next Page", parent=self)
+            self.nextPageButton.move(880, 540)
+            self.nextPageButton.clicked.connect(self.setNextPage)
 
         for i in range(MAX_CAPTURE):
             self.addPointsInput(0, 0)
@@ -54,6 +66,9 @@ class CropWindow(QWidget):
 
 
     def getMousePosition(self , event):
+        if (self.isDisableCrop):
+            return True
+        
         x = event.pos().x()
         y = event.pos().y() 
         filename = self.getNowFilename()
@@ -69,6 +84,9 @@ class CropWindow(QWidget):
 
         if (self.nowPointCursor >= MAX_CAPTURE * 2):
             self.getCropImage()
+            self.nextPageButton.setEnabled(False)
+            self.cropAllButton.setEnabled(True)
+            self.isDisableCrop = True
 
 
     def getCropImage(self):
@@ -76,15 +94,22 @@ class CropWindow(QWidget):
             filename = self.points[i][4]
             print(filename)
 
-            img = Image.open("./files/" + filename)
+            img = Image.open(PRESET_PATH + filename)
             imgMinX = int(self.points[i][1].text())
             imgMinY = int(self.points[i][3].text())
             imgMaxX = int(self.points[i+1][1].text())
             imgMaxY = int(self.points[i+1][3].text())
+            imageNumber = self.getPageNumberFromFilename(filename)
+
+            self.cropData[imageNumber - 1].append([imgMinX, imgMinY, imgMaxX, imgMaxY])
 
             imgCropped = img.crop((imgMinX, imgMinY, imgMaxX, imgMaxY))
             if (DEBUG_MODE):
                 imgCropped.show()
+
+    def getPageNumberFromFilename(self, filename):
+        page = int(filename.split(".jpg")[0].split("-")[1])
+        return page
 
     def setNextPage(self):
         self.nowPageNumber += 1
@@ -97,12 +122,34 @@ class CropWindow(QWidget):
 
     def changePreviewImage(self):
         filename = self.getNowFilename()
-        fileUrl = "./files/" + filename
+        fileUrl = PRESET_PATH + filename
         self.pixmap = QPixmap(fileUrl)
         self.label.setPixmap(self.pixmap)
         self.scroll.setWidget(self.label) 
 
         
+    def cropAllImage(self):
+        path = './files/'
+        filelist = os.listdir(path)
+        count = 0
+
+        for filename in filelist:
+            targetPageNumber = self.getPageNumberFromFilename(filename)
+            
+            for data in self.cropData[targetPageNumber - 1]:
+                imgMinX = data[0]
+                imgMinY = data[1]
+                imgMaxX = data[2]
+                imgMaxY = data[3]
+
+                img = Image.open(path + filename)
+                imgCropped = img.crop((imgMinX, imgMinY, imgMaxX, imgMaxY))
+                # imgCropped.show()
+                imgCropped.save("./result/" + "{:02d}-{filename}".format(count, filename=filename))
+                count += 1
+
+
+
 
     def addPointsInput(self, x, y):
         lineNumber = len(self.points)
