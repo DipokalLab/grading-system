@@ -41,7 +41,7 @@ class CropWindow(QWidget):
 
         self.gradingButton = QPushButton(text="Grading", parent=self)
         self.gradingButton.move(680, 540)
-        self.gradingButton.setEnabled(False)
+        self.gradingButton.setEnabled(True)
 
         self.cropAllButton = QPushButton(text="Crop All", parent=self)
         self.cropAllButton.move(780, 540)
@@ -148,6 +148,7 @@ class CropWindow(QWidget):
                 imgCropped.save("./result/" + "{:02d}-{filename}".format(count, filename=filename))
                 count += 1
 
+        self.gradingButton.setEnabled(True)
 
 
 

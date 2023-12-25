@@ -1,7 +1,10 @@
 
+import os
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+from PyQt5.QtGui import QPixmap
+
 
 
 
@@ -16,20 +19,32 @@ class GradingWindow(QWidget):
         self.move(300, 300)
         self.resize(1000, 600)
 
+        filelist = os.listdir('./result')
+
         self.tableWidget = QTableWidget()
-        self.tableWidget.setRowCount(20)
+        self.tableWidget.setRowCount(len(filelist))
         self.tableWidget.setColumnCount(3)
 
         self.tableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        # self.tableWidget.setEditTriggers(QAbstractItemView.DoubleClicked)
-        # self.tableWidget.setEditTriggers(QAbstractItemView.AllEditTriggers)
+
 
         self.tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        # self.tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
 
-        for i in range(20):
-            for j in range(3):
-                self.tableWidget.setItem(i, j, QTableWidgetItem(str(i+j)))
+
+        for i in range(len(filelist)):
+            label = QLabel(self)
+            pic = QPixmap("./result/" + filelist[i])
+            pic = pic.scaledToWidth(500)
+            label.setPixmap(pic)
+
+            # self.tableWidget.setItem(i, 0, QTableWidgetItem("S"))
+
+            self.tableWidget.setCellWidget(i, 0, label)
+
+            # self.tableWidget.setImage(i, 1, "./result/" + filelist[i])
+
+            # for j in range(3):
+
 
         layout = QVBoxLayout()
         layout.addWidget(self.tableWidget)
